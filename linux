@@ -1,0 +1,42 @@
+Description: Slurm Introduction
+Date: 3-31-2025
+Author: Sean Krajewski
+
+
+/boot = contains your system files i.e. grub and kernel
+go into grub2 and then grub.cfg and you can change which kernel you want to use
+
+it'll look like this ### BEGIN /etc/grub.d/10_linux ###
+
+
+
+Service File Locations for Systemd (listed in priority)
+1. /etc/systemd/system             (you can put override files here since they have highest priority)
+2. /run/systemd/system
+3. /lib/systemd/system             (typically when you install a package this is where it'll store the unit files)
+
+the types of files you'll see are
+socket
+service
+timer
+target
+
+reload is different from restart in that it reloads the configuration files without kicking off the users 
+cat /etc/systemd/system/httpd.service.d/override.conf    (only contains what has changed)
+rm /etc/systemd/system/httpd.service.d/override.conf    (removes the override file) 
+
+systemctl edit httpd.service              edit the service file; creates an override file
+systemctl edit --full httpd.service       edit the service file; edits the original
+
+
+#cockpit
+
+dnf install cockpit -y
+systemctl status cockpit.socket
+systemctl enable --now cockpit.socket     (will listen on port 9090)
+go to ip address of your host machine
+use a login info for a user on the account
+
+#Houston Command Center
+dnf update -y
+curl -sSL https://repo.45drives.com/setup | sudo bash

@@ -1,0 +1,7 @@
+Description: Slurm Introduction
+Date: 3-31-2025
+Author: Sean Krajewski
+
+
+Spack is a open-source package manager that is similar to apt, dnf, yum.  However, it doens't require root access!
+This makes it ideal for shared clusters like those managed by Slurm 

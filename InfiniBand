@@ -1,0 +1,14 @@
+Description: Slurm Introduction
+Date: 3-31-2025
+Author: Sean Krajewski
+
+
+
+InfiniBand is a high-speed interconnect technology used in HPC and data center environments
+
+1. high bandwidth 10Gbps to 100s Gbps
+2. low latency communication i.e. the delay between sending a message and receiving a response (required for HPC because of parallel processing)
+3. scalability: allows for thousands of nodes interconnected in a cluster
+4. Remote direct memory access (RDMA) enables direct data transfer between different nodes memory without invovling the processor
+5. Reliable transport: has various error dection and correction mechanisms to ensure reliable and accurate data transmission
+

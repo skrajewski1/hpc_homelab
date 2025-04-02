@@ -1,0 +1,38 @@
+Description: Slurm Introduction
+Date: 3-31-2025
+Author: Sean Krajewski
+
+
+Slurm = Simple Linux Utility for Resource Management
+Slurm is a tool that schedules jobs to run on a compute cluster that's used in HPC environments
+ 
+
+Commands:
+[these commands let you schedule, allocate resources, and cancel jobs]
+*Sbatch  = submits a batch script to the slurm scheduler to run a job non-interactively when resources are available
+Srun = launches a command/job immediately across specified resources often interactively or within a script
+Salloc = allocates resources for a job and provides an interactive shell to use them without running a script update
+*Scancel = terminates a running or pending job by specifying its job ID
+
+[these commands look at the sate of the system]
+*Squeue = displays the current sate of jobs in the queue such as thier status, user, and resources. WHAT JOBS EXIST
+*Sinfo = shows information about the clusters nodes and partitions, like avaialbility and configuration
+Sacct = retrives detailed accounting data for completed or running jobs, such as runtime and resource usage
+
+*commands that are are your workhorses
+
+
+
+Best practices:
+1. put related work into a multiple job steps both for performance and ease of management
+
+
+sbatch -c 2 --mem-per-cpu 2G -t 1-0:0:0 -J climateModel --wrap "python climate.py"
+-c <number of cpus to use>
+--mem-per-cpu <number of memory to use per cpu>
+-t <time you want to allocate; just give it your best guess; 10:0:0 = 10 hours and 3-0:0:0 = 3 days>
+-J <job name>
+--wrap "python python.py"   (the call to make i.e. what it is you are going to be submitting)
+
+remember that sbatch works in the background while srun works in the foreground and you won't be able to use the terminal when you execute the command
+
