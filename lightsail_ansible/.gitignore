@@ -1,0 +1,32 @@
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files (sensitive data)
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+
+# Exclude override files as they are usually local
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Sensitive/private keys
+*.pem
+*.key
+*.pub
+*.crt
+
+# Terraform plan output
+*.tfplan
+
+# Terraform lock file (optional — include if collaborating)
+.terraform.lock.hcl
+
+# VS Code settings (optional)
+.vscode/
