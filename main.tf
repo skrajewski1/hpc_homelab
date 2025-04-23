@@ -12,6 +12,14 @@ terraform {
       source  = "hashicorp/local"
       version = "~> 2.0"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9.0"
+    }
   }
 }
 
@@ -78,35 +86,15 @@ resource "null_resource" "setup_sm" {
 
   # Copy setup script to the instance
   provisioner "file" {
-    content     = <<-EOF
-      #!/bin/bash
-      # Update system packages
-      sudo yum update -y
-      sudo yum install -y python3
-
-      # Install Ansible
-      sudo amazon-linux-extras install -y ansible2
-
-      # Create ansible user
-      sudo useradd -m ansible
-      echo "ansible ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
-
-      # Create config file
-      PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-      echo "sm IP: $PUBLIC_IP" | sudo tee /etc/config
-      echo "sm hostname: sm" | sudo tee -a /etc/config
-
-      # Set hostname
-      sudo hostnamectl set-hostname sm
-    EOF
-    destination = "/tmp/setup.sh"
+    source      = "${path.module}/setup_sm.sh"
+    destination = "/tmp/setup_sm.sh"
   }
 
   # Execute the setup script
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/setup.sh",
-      "/tmp/setup.sh",
+      "chmod +x /tmp/setup_sm.sh",
+      "/tmp/setup_sm.sh",
       "echo 'SM setup completed'"
     ]
   }
@@ -145,39 +133,16 @@ resource "null_resource" "setup_clients" {
 
   # Copy setup script to the instance
   provisioner "file" {
-    content     = <<-EOF
-      #!/bin/bash
-      # Update system packages
-      sudo yum update -y
-      sudo yum install -y python3
-
-      # Install Ansible
-      sudo amazon-linux-extras install -y ansible2
-
-      # Create ansible user
-      sudo useradd -m ansible
-      echo "ansible ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers
-
-      # Create config file
-      CLIENT_NUM=${count.index + 1}
-      PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-      echo "client IP: $PUBLIC_IP" | sudo tee /etc/config
-      echo "client hostname: client-$CLIENT_NUM" | sudo tee -a /etc/config
-      echo "sm IP: ${aws_lightsail_instance.sm.public_ip_address}" | sudo tee -a /etc/config
-      echo "sm hostname: sm" | sudo tee -a /etc/config
-
-      # Set hostname
-      sudo hostnamectl set-hostname client-$CLIENT_NUM
-    EOF
-    destination = "/tmp/setup.sh"
+    source      = "${path.module}/setup_client.sh"
+    destination = "/tmp/setup_client.sh"
   }
 
-  # Execute the setup script
+  # Execute the setup script with required parameters
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/setup.sh",
-      "/tmp/setup.sh",
-      "echo 'Client setup completed'"
+      "chmod +x /tmp/setup_client.sh",
+      "CLIENT_NUM=${count.index + 1} SM_IP=${aws_lightsail_instance.sm.public_ip_address} /tmp/setup_client.sh",
+      "echo 'Client ${count.index + 1} setup completed'"
     ]
   }
 }
