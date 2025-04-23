@@ -24,13 +24,13 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"  # Adjust as needed for your region
+  region = "us-east-1" # Adjust as needed for your region
 }
 
 variable "client_count" {
   description = "Number of client machines to provision"
   type        = number
-  default     = 1  # Default to 1 client
+  default     = 1
 }
 
 # Create SSH key
@@ -48,7 +48,7 @@ resource "aws_lightsail_key_pair" "hpc_key" {
 resource "local_file" "private_key" {
   content         = tls_private_key.hpc_key.private_key_pem
   filename        = "${path.module}/hpc.pem"
-  file_permission = "0600"  # Set proper permissions for SSH key
+  file_permission = "0600" # Set proper permissions for SSH key
 }
 
 # Save public key locally
@@ -60,15 +60,15 @@ resource "local_file" "public_key" {
 # SM instance
 resource "aws_lightsail_instance" "sm" {
   name              = "sm"
-  availability_zone = "us-east-1a"  # Adjust as needed
+  availability_zone = "us-east-1a" # Adjust as needed
   blueprint_id      = "amazon_linux_2"
-  bundle_id         = "micro_2_0"  # Adjust as needed
+  bundle_id         = "micro_2_0" # Adjust as needed
   key_pair_name     = aws_lightsail_key_pair.hpc_key.name
 }
 
 # Wait for SM instance to be ready before attempting SSH
 resource "time_sleep" "wait_for_sm" {
-  depends_on = [aws_lightsail_instance.sm]
+  depends_on      = [aws_lightsail_instance.sm]
   create_duration = "60s"
 }
 
@@ -82,6 +82,17 @@ resource "null_resource" "setup_sm" {
     private_key = tls_private_key.hpc_key.private_key_pem
     host        = aws_lightsail_instance.sm.public_ip_address
     timeout     = "2m"
+  }
+
+  provisioner "file" {
+    source      = "${path.module}/hpc.pem"
+    destination = "/home/ec2-user/hpc.pem"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod 600 /home/ec2-user/hpc.pem"
+    ]
   }
 
   # Copy setup script to the instance
@@ -104,17 +115,17 @@ resource "null_resource" "setup_sm" {
 resource "aws_lightsail_instance" "clients" {
   count             = var.client_count
   name              = "client-${count.index + 1}"
-  availability_zone = "us-east-1a"  # Adjust as needed
+  availability_zone = "us-east-1a" # Adjust as needed
   blueprint_id      = "amazon_linux_2"
-  bundle_id         = "micro_2_0"  # Adjust as needed
+  bundle_id         = "micro_2_0" # Adjust as needed
   key_pair_name     = aws_lightsail_key_pair.hpc_key.name
 
-  depends_on = [null_resource.setup_sm]  # Ensure SM is fully configured first
+  depends_on = [null_resource.setup_sm] # Ensure SM is fully configured first
 }
 
 # Wait for client instances to be ready before attempting SSH
 resource "time_sleep" "wait_for_clients" {
-  depends_on = [aws_lightsail_instance.clients]
+  depends_on      = [aws_lightsail_instance.clients]
   create_duration = "60s"
 }
 
@@ -162,3 +173,14 @@ output "client_public_ips" {
 output "client_ssh_commands" {
   value = [for i in range(var.client_count) : "ssh -i ${path.module}/hpc.pem ec2-user@${aws_lightsail_instance.clients[i].public_ip_address}"]
 }
+
+output "client_names_with_ips" {
+  value = {
+    for i in range(var.client_count) :
+    "client-${i + 1}" => aws_lightsail_instance.clients[i].public_ip_address
+  }
+}
+
+
+
+
